@@ -435,6 +435,33 @@ body {
   font-size: 0.94rem;
 }
 
+.no-dup-option {
+  margin-top: 8px;
+}
+
+.no-dup-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid #a3d9a5;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--forest-dark);
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(45, 106, 79, 0.08);
+}
+
+.no-dup-label input[type="checkbox"] {
+  accent-color: var(--forest-moss);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
 .banner-buttons {
   display: flex;
   align-items: center;
@@ -697,6 +724,37 @@ body {
   font-size: 1.2rem;
 }
 
+/* Previous Role Pill on Card */
+.card-prev-role {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fbf7ee;
+  border: 1.5px dashed #d6c7b2;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  color: var(--wood-warm);
+  margin-bottom: 12px;
+}
+
+.prev-role-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: #8c5836;
+}
+
+.prev-role-value {
+  font-weight: 800;
+  color: #3e2723;
+  background: #f0ebe1;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid #e0d5c5;
+}
+
 .card-desc {
   font-size: 0.85rem;
   color: var(--wood-trunk);
@@ -792,6 +850,13 @@ body {
   font-size: 1.05rem;
   color: var(--forest-dark);
   text-align: center;
+}
+
+.td-prev-role {
+  font-size: 0.88rem;
+  color: #64748b;
+  text-align: center;
+  background-color: rgba(240, 235, 225, 0.4);
 }
 
 .td-role {
@@ -1461,6 +1526,12 @@ body {
     font-size: 11pt !important;
     font-weight: 800 !important;
     color: #000000 !important;
+  }
+
+  .td-prev-role {
+    font-size: 9.5pt !important;
+    color: #4b5563 !important;
+    text-align: center !important;
   }
 
   .td-role {

@@ -105,14 +105,20 @@
       <div class="action-banner-inner">
         <div class="banner-text">
           <div class="banner-quote">"바람이 불어오는 날, 모두의 손길로 숲이 무성해집니다." 🍃</div>
-          <h2>숲의 정령들과 함께하는 역할 정하기 🌰</h2>
-          <p>서로를 배려하며 우리 교실을 푸르게 가꾸는 소중한 1인 1역할입니다.</p>
+          <h2>빛남이들과 함께하는 역할 정하기 ✨</h2>
+          <p>이전 역할을 확인하며 골고루 책임을 나누는 소중한 1인 1역할입니다.</p>
+          <div class="no-dup-option">
+            <label class="no-dup-label">
+              <input type="checkbox" id="preventDupCheckbox" checked />
+              <span>✨ 직전 역할과 중복 방지 (새로운 역할 경험하기)</span>
+            </label>
+          </div>
         </div>
         <div class="banner-buttons">
           <button id="btnAssign" class="btn btn-ghibli-primary pulse-btn" type="button">
             <span class="dice-icon">🎲</span>
             <span class="btn-main-text">역할 배정하기</span>
-            <span class="btn-sub-text">바람과 함께 랜덤 매칭! ✨</span>
+            <span class="btn-sub-text">빛남이들과 랜덤 매칭! ✨</span>
           </button>
           <button id="btnReset" class="btn btn-ghibli-outline" type="button" title="배정 결과를 초기화합니다">
             <span>🔄 다시 섞기</span>
@@ -126,7 +132,7 @@
       <!-- Result Bar & View Toggle -->
       <div class="results-header no-print">
         <div class="results-info">
-          <h3 id="assignmentStatusTitle">🌿 숲속 배정 정원</h3>
+          <h3 id="assignmentStatusTitle">🌿 빛남이들의 숲속 배정 정원</h3>
           <span id="assignmentSubtitle" class="text-muted">아직 역할이 배정되지 않았습니다. [🎲 역할 배정하기] 버튼을 눌러보세요!</span>
         </div>
         <div class="view-switch ghibli-switch">
@@ -159,11 +165,12 @@
         <table class="print-table" id="roleTable">
           <thead>
             <tr>
-              <th style="width: 8%;">번호</th>
-              <th style="width: 18%;">학생 이름</th>
-              <th style="width: 24%;">담당 역할</th>
-              <th style="width: 36%;">주요 임무 및 실천 내용</th>
-              <th style="width: 14%;">확인란</th>
+              <th style="width: 7%;">번호</th>
+              <th style="width: 15%;">학생 이름</th>
+              <th style="width: 17%;">이전 역할</th>
+              <th style="width: 21%;">이번 담당 역할</th>
+              <th style="width: 30%;">주요 임무 및 실천 내용</th>
+              <th style="width: 10%;">확인란</th>
             </tr>
           </thead>
           <tbody id="tableBody">
