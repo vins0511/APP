@@ -298,19 +298,91 @@
             <pre><code id="sampleScriptCode">// 구글 스프레드시트의 [확장 프로그램] > [Apps Script]에 붙여넣으세요.
 function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var studentSheet = ss.getSheetByName("학생명단") || ss.getSheets()[0];
-  var roleSheet = ss.getSheetByName("역할명단") || (ss.getSheets().length > 1 ? ss.getSheets()[1] : studentSheet);
-  
-  var students = studentSheet.getRange(2, 1, Math.max(1, studentSheet.getLastRow() - 1), 1).getValues().flat().filter(String);
+  var assignments = [];
+  var students = [];
   var roles = [];
-  if (roleSheet !== studentSheet) {
-    var roleData = roleSheet.getRange(2, 1, Math.max(1, roleSheet.getLastRow() - 1), 3).getValues();
-    roles = roleData.filter(function(r) { return r[0]; }).map(function(r) {
-      return { icon: r[0] || "🌿", name: r[1] || "", desc: r[2] || "" };
-    });
+  
+  // 1. 이미 저장된 '배정결과' 시트가 있는지 먼저 확인
+  var resultSheet = ss.getSheetByName("배정결과");
+  if (resultSheet && resultSheet.getLastRow() >= 2) {
+    var numRows = resultSheet.getLastRow() - 1;
+    var numCols = Math.max(5, resultSheet.getLastColumn());
+    var rData = resultSheet.getRange(2, 1, numRows, numCols).getValues();
+    
+    for (var i = 0; i < rData.length; i++) {
+      var row = rData[i];
+      var sName = "";
+      var pRole = "새 학기 🌱";
+      var rName = "";
+      var rDesc = "";
+      
+      // 첫 열이 번호(숫자)인 경우: [번호, 이름, 이전역할, 담당역할, 설명]
+      if (typeof row[0] === "number" || (!isNaN(Number(row[0])) && String(row[0]).trim() !== "")) {
+        sName = String(row[1] || "").trim();
+        pRole = String(row[2] || "새 학기 🌱").trim();
+        rName = String(row[3] || "").trim();
+        rDesc = String(row[4] || "").trim();
+      } else {
+        // 첫 열이 이름인 경우: [이름, 이전역할, 담당역할, 설명]
+        sName = String(row[0] || "").trim();
+        pRole = String(row[1] || "새 학기 🌱").trim();
+        rName = String(row[2] || "").trim();
+        rDesc = String(row[3] || "").trim();
+      }
+      
+      if (sName) {
+        var rIcon = "🌿";
+        var emojiMatch = rName.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|\S+)\s+(.+)$/);
+        if (emojiMatch) {
+          rIcon = emojiMatch[1];
+          rName = emojiMatch[2];
+        }
+        
+        var roleObj = { id: i + 1, icon: rIcon, name: rName || ("역할 " + (i + 1)), desc: rDesc };
+        assignments.push({ student: sName, prevRole: pRole, role: roleObj });
+        students.push({ name: sName, prevRole: pRole });
+        if (rName) roles.push(roleObj);
+      }
+    }
   }
   
-  var result = { status: "success", students: students, roles: roles };
+  // 2. '배정결과'가 없거나 비어있는 경우, '학생명단' 및 '역할명단' 시트 읽기
+  if (assignments.length === 0) {
+    var studentSheet = ss.getSheetByName("학생명단") || ss.getSheets()[0];
+    var roleSheet = ss.getSheetByName("역할명단") || (ss.getSheets().length > 1 ? ss.getSheets()[1] : studentSheet);
+    
+    if (studentSheet && studentSheet.getLastRow() >= 2) {
+      var sRows = studentSheet.getLastRow() - 1;
+      var sData = studentSheet.getRange(2, 1, sRows, Math.min(2, studentSheet.getLastColumn())).getValues();
+      for (var s = 0; s < sData.length; s++) {
+        var nameVal = String(sData[s][0] || "").trim();
+        var prevVal = String(sData[s][1] || "새 학기 🌱").trim();
+        if (nameVal && nameVal !== "번호" && nameVal !== "학생 이름") {
+          students.push({ name: nameVal, prevRole: prevVal });
+        }
+      }
+    }
+    
+    if (roleSheet && roleSheet !== studentSheet && roleSheet.getLastRow() >= 2) {
+      var rRows = roleSheet.getLastRow() - 1;
+      var rData = roleSheet.getRange(2, 1, rRows, Math.min(3, roleSheet.getLastColumn())).getValues();
+      for (var r = 0; r < rData.length; r++) {
+        var iconVal = String(rData[r][0] || "🌿").trim();
+        var rNameVal = String(rData[r][1] || "").trim();
+        var descVal = String(rData[r][2] || "").trim();
+        if (rNameVal && rNameVal !== "역할명" && rNameVal !== "담당 역할") {
+          roles.push({ id: r + 1, icon: iconVal, name: rNameVal, desc: descVal });
+        }
+      }
+    }
+  }
+  
+  var result = {
+    status: "success",
+    assignments: assignments,
+    students: students,
+    roles: roles
+  };
   return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -320,11 +392,15 @@ function doPost(e) {
   var resultSheet = ss.getSheetByName("배정결과") || ss.insertSheet("배정결과");
   
   resultSheet.clear();
-  resultSheet.appendRow(["번호", "학생 이름", "담당 역할", "역할 설명", "배정 일시"]);
+  resultSheet.appendRow(["번호", "학생 이름", "이전 역할", "이번 담당 역할", "역할 설명", "배정 일시"]);
   
   if (params.assignments) {
     params.assignments.forEach(function(item, idx) {
-      resultSheet.appendRow([idx + 1, item.student, item.role.name, item.role.desc, new Date()]);
+      var studentName = typeof item.student === "object" ? (item.student.name || "") : String(item.student || "");
+      var prevRole = typeof item.prevRole === "object" ? (item.prevRole.name || "") : String(item.prevRole || "");
+      var roleName = item.role ? (typeof item.role === "object" ? item.role.name : String(item.role)) : "";
+      var roleDesc = item.role ? (item.role.desc || "") : "";
+      resultSheet.appendRow([idx + 1, studentName, prevRole, roleName, roleDesc, new Date()]);
     });
   }
   
