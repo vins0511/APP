@@ -1,12 +1,12 @@
 /**
- * 학급 1인 1역할 배정 도우미 - script.js
+ * 학급 1인 1역할 배정 도우미 - script.js (지브리 숲속 교실 에디션)
  * 
  * 주요 기능:
  * 1. 학생 12명 & 학급 역할 12개 기본 예시 데이터 탑재
- * 2. [🎲 역할 배정하기] 무작위 1:1 랜덤 셔플 & 애니메이션 & 효과음 & 컨페티
- * 3. [🖨️ A4 게시판 인쇄] 인쇄 전용 헤더 및 A4 1장에 꼭 맞는 정갈한 표 포맷
+ * 2. [🎲 역할 배정하기] 무작위 1:1 랜덤 매칭 & 오르골/풍경소리 효과음 & 숲속 흩날리는 잎사귀/꽃잎 파티클
+ * 3. [🖨️ A4 게시판 인쇄] 지브리 가랜드가 담긴 정갈한 A4 교실 게시판 인쇄
  * 4. [🔄 시트 불러오기], [💾 시트에 결과 저장] 구글 스프레드시트 Apps Script 연동 준비
- * 5. 명단 및 역할 추가/수정/삭제, 엑셀/한글 표 복사, 로컬 저장(localStorage)
+ * 5. 카드 맞교환(스왑), 명단/역할 편집, 엑셀/한글 표 복사, localStorage 자동 저장
  */
 
 (function () {
@@ -28,8 +28,8 @@
     { id: 4, icon: '📚', name: '도서 대장', desc: '학급 문고 책을 바르게 꽂고 독서 통장을 도와줘요.' },
     { id: 5, icon: '🚶‍♂️', name: '줄서기 반장', desc: '이동 수업이나 급식실 갈 때 두 줄로 바르게 세워요.' },
     { id: 6, icon: '♻️', name: '분리수거 요원', desc: '재활용 쓰레기와 일반 쓰레기가 섞이지 않게 도와줘요.' },
-    { id: 7, icon: '🪟', name: '창문·환기 대장', desc: '쉬는 시간마다 교실 창문을 열어 맑은 공기를 채워요.' },
-    { id: 8, icon: '🌱', name: '식물 집사', desc: '교실 화분 식물들에게 사랑과 함께 물을 줘요.' },
+    { id: 7, icon: '🪟', name: '창문·환기 대장', desc: '쉬는 시간마다 교실 창문을 열어 맑은 숲바람을 채워요.' },
+    { id: 8, icon: '🌱', name: '식물 집사', desc: '교실 화분 식물들에게 다정한 사랑과 물을 줘요.' },
     { id: 9, icon: '✨', name: '방역·위생 위원', desc: '손 소독제를 채우고 교실 책상 청결을 살펴요.' },
     { id: 10, icon: '📄', name: '학습지 전달관', desc: '선생님이 주시는 학습지와 알림장을 친구들에게 나눠줘요.' },
     { id: 11, icon: '⚽', name: '체육 용구 대장', desc: '체육 시간에 공과 줄넘기를 챙기고 수업 후 제자리에 둬요.' },
@@ -43,7 +43,7 @@
     students: [],
     roles: [],
     assignments: [], // Array of { student: string, role: { id, icon, name, desc } }
-    classTitle: '🌈 즐거운 우리 반 1인 1역할 배정표',
+    classTitle: '🌳 숲속 우리 반 1인 1역할 배정표',
     assignDate: new Date().toISOString().split('T')[0],
     viewMode: 'grid', // 'grid' | 'table'
     soundEnabled: true,
@@ -53,11 +53,11 @@
   };
 
   // LocalStorage Keys
-  const STORAGE_KEY = 'class_role_assigner_v1';
+  const STORAGE_KEY = 'ghibli_class_role_assigner_v1';
   const SHEET_URL_KEY = 'class_role_sheet_url_v1';
 
   // ==========================================
-  // 3. Web Audio API (합성 효과음 - 외부 에셋 없이 무결점 동작)
+  // 3. 지브리 오르골 & 풍경소리 Web Audio API
   // ==========================================
   let audioCtx = null;
 
@@ -68,6 +68,9 @@
     }
   }
 
+  // 지브리 펜타토닉 풍경 음계 (Celesta / Glockenspiel chime)
+  const pentatonicScale = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50]; // C5, D5, E5, G5, A5, C6
+
   function playTickSound() {
     if (!state.soundEnabled) return;
     try {
@@ -77,18 +80,21 @@
 
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(400 + Math.random() * 200, audioCtx.currentTime);
+      osc.type = 'sine'; // 따뜻하고 맑은 톤
 
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+      const freq = pentatonicScale[Math.floor(Math.random() * pentatonicScale.length)];
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+      gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
 
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.05);
+      osc.stop(audioCtx.currentTime + 0.12);
     } catch (e) {
-      // Audio fallback silent
+      // Audio silent fallback
     }
   }
 
@@ -99,26 +105,30 @@
       if (!audioCtx) return;
       if (audioCtx.state === 'suspended') audioCtx.resume();
 
-      // Cheerful C-E-G-C major chord fanfare
-      const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
-      notes.forEach((freq, idx) => {
+      // 지브리 서정적 오르골 멜로디 아르페지오 (C - G - C - E - G - C6)
+      const notes = [
+        { f: 523.25, t: 0.00, d: 0.4 },  // C5
+        { f: 659.25, t: 0.12, d: 0.4 },  // E5
+        { f: 783.99, t: 0.24, d: 0.4 },  // G5
+        { f: 1046.5, t: 0.38, d: 0.6 },  // C6
+        { f: 1318.5, t: 0.52, d: 0.9 }   // E6 (여운)
+      ];
+
+      notes.forEach(n => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.value = freq;
+        osc.frequency.setValueAtTime(n.f, audioCtx.currentTime + n.t);
 
-        const startTime = audioCtx.currentTime + idx * 0.1;
-        const duration = idx === notes.length - 1 ? 0.6 : 0.25;
-
-        gain.gain.setValueAtTime(0.001, startTime);
-        gain.gain.linearRampToValueAtTime(0.12, startTime + 0.04);
-        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        const start = audioCtx.currentTime + n.t;
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.linearRampToValueAtTime(0.12, start + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + n.d);
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-
-        osc.start(startTime);
-        osc.stop(startTime + duration);
+        osc.start(start);
+        osc.stop(start + n.d);
       });
     } catch (e) {
       // Silent catch
@@ -126,12 +136,12 @@
   }
 
   // ==========================================
-  // 4. Confetti (꽃가루 축하 파티클 효과)
+  // 4. 지브리 숲바람 파티클 (나뭇잎, 민들레 홀씨, 벚꽃잎)
   // ==========================================
   const confettiCanvas = document.getElementById('confettiCanvas');
   const ctx = confettiCanvas ? confettiCanvas.getContext('2d') : null;
-  let confettiParticles = [];
-  let confettiAnimId = null;
+  let forestParticles = [];
+  let animId = null;
 
   function resizeCanvas() {
     if (!confettiCanvas) return;
@@ -144,38 +154,50 @@
   function triggerConfetti() {
     if (!ctx || !confettiCanvas) return;
     resizeCanvas();
-    const colors = ['#f472b6', '#38bdf8', '#34d399', '#fbbf24', '#a78bfa', '#fb923c'];
-    confettiParticles = [];
 
-    for (let i = 0; i < 90; i++) {
-      confettiParticles.push({
-        x: confettiCanvas.width / 2 + (Math.random() - 0.5) * 200,
-        y: confettiCanvas.height / 3 + (Math.random() - 0.5) * 50,
-        vx: (Math.random() - 0.5) * 12,
-        vy: -Math.random() * 12 - 3,
-        size: Math.random() * 8 + 6,
-        color: colors[Math.floor(Math.random() * colors.length)],
+    forestParticles = [];
+    // 3가지 지브리 파티클 타입: 'leaf'(나뭇잎), 'petal'(벚꽃잎), 'spore'(황금 홀씨)
+    const types = ['leaf', 'leaf', 'petal', 'petal', 'spore'];
+    const leafColors = ['#52b788', '#40916c', '#74c69d', '#a7c957', '#e76f51'];
+    const petalColors = ['#ffccd5', '#ffb3c1', '#f472b6'];
+
+    for (let i = 0; i < 75; i++) {
+      const type = types[Math.floor(Math.random() * types.length)];
+      let color = '#fef08a';
+      if (type === 'leaf') color = leafColors[Math.floor(Math.random() * leafColors.length)];
+      if (type === 'petal') color = petalColors[Math.floor(Math.random() * petalColors.length)];
+
+      forestParticles.push({
+        type: type,
+        x: confettiCanvas.width / 2 + (Math.random() - 0.5) * 260,
+        y: confettiCanvas.height / 3 + (Math.random() - 0.5) * 80,
+        vx: (Math.random() - 0.5) * 9,
+        vy: -Math.random() * 8 - 3,
+        size: Math.random() * 8 + 8,
+        color: color,
         rotation: Math.random() * 360,
-        rotSpeed: (Math.random() - 0.5) * 10,
+        rotSpeed: (Math.random() - 0.5) * 6,
+        wobble: Math.random() * Math.PI,
         opacity: 1
       });
     }
 
-    if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
-    animateConfetti();
+    if (animId) cancelAnimationFrame(animId);
+    animateParticles();
   }
 
-  function animateConfetti() {
+  function animateParticles() {
     if (!ctx || !confettiCanvas) return;
     ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
 
     let activeCount = 0;
-    for (let p of confettiParticles) {
-      p.x += p.vx;
+    for (let p of forestParticles) {
+      p.x += p.vx + Math.sin(p.wobble) * 1.5;
       p.y += p.vy;
-      p.vy += 0.35; // Gravity
+      p.vy += 0.22; // 부드러운 바람 낙하
+      p.wobble += 0.05;
       p.rotation += p.rotSpeed;
-      p.opacity -= 0.009;
+      p.opacity -= 0.007;
 
       if (p.opacity > 0 && p.y < confettiCanvas.height) {
         activeCount++;
@@ -184,20 +206,38 @@
         ctx.rotate((p.rotation * Math.PI) / 180);
         ctx.globalAlpha = Math.max(0, p.opacity);
         ctx.fillStyle = p.color;
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+
+        if (p.type === 'leaf') {
+          // 나뭇잎 형태 그리기
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.size, p.size * 0.45, 0, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.type === 'petal') {
+          // 벚꽃잎 하트/타원 형태
+          ctx.beginPath();
+          ctx.arc(-p.size * 0.25, 0, p.size * 0.35, 0, Math.PI * 2);
+          ctx.arc(p.size * 0.25, 0, p.size * 0.35, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // 반짝이는 작은 황금 홀씨
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
         ctx.restore();
       }
     }
 
     if (activeCount > 0) {
-      confettiAnimId = requestAnimationFrame(animateConfetti);
+      animId = requestAnimationFrame(animateParticles);
     } else {
       ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
     }
   }
 
   // ==========================================
-  // 5. Toast Notifications
+  // 5. Toast 알림
   // ==========================================
   function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
@@ -206,9 +246,9 @@
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     
-    let icon = '💡';
-    if (type === 'success') icon = '🎉';
-    if (type === 'warn') icon = '⚠️';
+    let icon = '🌿';
+    if (type === 'success') icon = '🌰';
+    if (type === 'warn') icon = '🐾';
 
     toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
     container.appendChild(toast);
@@ -231,7 +271,7 @@
         const parsed = JSON.parse(saved);
         state.students = Array.isArray(parsed.students) && parsed.students.length > 0 ? parsed.students : [...DEFAULT_STUDENTS];
         state.roles = Array.isArray(parsed.roles) && parsed.roles.length > 0 ? parsed.roles : [...DEFAULT_ROLES];
-        state.classTitle = parsed.classTitle || '🌈 즐거운 우리 반 1인 1역할 배정표';
+        state.classTitle = parsed.classTitle || '🌳 숲속 우리 반 1인 1역할 배정표';
         state.assignments = Array.isArray(parsed.assignments) ? parsed.assignments : [];
         if (parsed.assignDate) state.assignDate = parsed.assignDate;
       } else {
@@ -263,12 +303,11 @@
   function resetToDefaults() {
     state.students = [...DEFAULT_STUDENTS];
     state.roles = [...DEFAULT_ROLES];
-    state.classTitle = '🌈 즐거운 우리 반 1인 1역할 배정표';
+    state.classTitle = '🌳 숲속 우리 반 1인 1역할 배정표';
     state.assignDate = new Date().toISOString().split('T')[0];
     
-    // Initial sequential or empty matching
     state.assignments = state.roles.map((role, idx) => ({
-      student: state.students[idx] || `학생 ${idx + 1}`,
+      student: state.students[idx] || `친구 ${idx + 1}`,
       role: role
     }));
 
@@ -299,7 +338,6 @@
     const btnAssign = document.getElementById('btnAssign');
     if (btnAssign) btnAssign.classList.add('loading');
 
-    // Make sure we have enough students / roles
     const shuffledStudents = shuffleArray(state.students);
     const shuffledRoles = shuffleArray(state.roles);
 
@@ -309,13 +347,13 @@
 
     let rollStep = 0;
     const totalRolls = 14;
-    const rollInterval = 80;
+    const rollInterval = 85;
 
     const intervalId = setInterval(() => {
       rollStep++;
       playTickSound();
 
-      // Random name flicker during rolling
+      // 이름 깜빡임 효과
       const nameElements = document.querySelectorAll('.student-name-display');
       nameElements.forEach(el => {
         const randName = state.students[Math.floor(Math.random() * state.students.length)];
@@ -325,11 +363,11 @@
       if (rollStep >= totalRolls) {
         clearInterval(intervalId);
 
-        // Finalize Assignment
+        // 최종 배정 확정
         const finalAssignments = [];
         for (let i = 0; i < matchCount; i++) {
           const student = shuffledStudents[i % shuffledStudents.length] || `미배정`;
-          const role = shuffledRoles[i % shuffledRoles.length] || { id: i + 1, icon: '⭐', name: '자율 도우미', desc: '학급을 돕는 특별 임무를 수행해요.' };
+          const role = shuffledRoles[i % shuffledRoles.length] || { id: i + 1, icon: '🌿', name: '자율 도우미', desc: '학급을 돕는 소중한 임무를 수행해요.' };
           finalAssignments.push({ student, role });
         }
 
@@ -342,17 +380,17 @@
         playFanfare();
         triggerConfetti();
 
-        // Update status title
+        // 상태 자막 갱신
         const statusSubtitle = document.getElementById('assignmentSubtitle');
         if (statusSubtitle) {
-          statusSubtitle.textContent = `🎉 총 ${finalAssignments.length}명의 학생에게 역할이 공정하게 배정되었습니다!`;
-          statusSubtitle.style.color = '#1e3a8a';
+          statusSubtitle.textContent = `🍃 바람을 타고 총 ${finalAssignments.length}명의 친구들에게 역할이 정답게 배정되었습니다!`;
+          statusSubtitle.style.color = '#1b4332';
           statusSubtitle.style.fontWeight = '700';
         }
 
-        showToast('역할 배정이 완료되었습니다! 🎈', 'success');
+        showToast('숲속 역할 배정이 완료되었습니다! 🍃', 'success');
 
-        // Pop success animation on cards
+        // 카드 팝업 애니메이션
         setTimeout(() => {
           document.querySelectorAll('.role-card').forEach(c => c.classList.add('pop-in'));
         }, 50);
@@ -395,10 +433,10 @@
 
     if (state.assignments.length === 0) {
       grid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; background: #ffffff; border-radius: 16px; border: 2px dashed #cbd5e1;">
-          <span style="font-size: 3rem; display: block; margin-bottom: 12px;">🎲</span>
-          <h3 style="font-size: 1.25rem; font-weight: 800; color: #334155; margin-bottom: 8px;">배정 대기 중</h3>
-          <p style="color: #64748b; font-size: 0.95rem;">상단의 <strong>[🎲 역할 배정하기]</strong> 버튼을 누르면 귀여운 카드 형태로 배정 결과가 나타납니다.</p>
+        <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; background: #fdfaf3; border-radius: 16px; border: 2px dashed #bcaaa4;">
+          <span style="font-size: 3rem; display: block; margin-bottom: 12px;">🌰</span>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: #4a2e18; margin-bottom: 8px;">배정 대기 중</h3>
+          <p style="color: #6f4e37; font-size: 0.95rem;">상단의 <strong>[🎲 역할 배정하기]</strong>를 누르면 숲속 동물들과 요정들이 카드를 건네줍니다.</p>
         </div>
       `;
       return;
@@ -413,22 +451,20 @@
       card.innerHTML = `
         <div class="card-top">
           <span class="card-order-badge">역할 #${index + 1}</span>
-          <div class="card-icon">${item.role.icon || '⭐'}</div>
+          <div class="card-icon">${item.role.icon || '🌿'}</div>
         </div>
         <h4 class="card-role-title">${item.role.name}</h4>
         <div class="assigned-student-box">
-          <span class="student-label">담당 학생</span>
+          <span class="student-label">담당 친구</span>
           <div class="student-name-display">
             <span class="student-avatar">👤</span>
             <span class="name-text">${item.student}</span>
           </div>
         </div>
-        <p class="card-desc">💡 ${item.role.desc || '학급을 위한 소중한 임무를 실천해요.'}</p>
+        <p class="card-desc">🍃 ${item.role.desc || '숲속 교실을 위한 소중한 임무를 실천해요.'}</p>
       `;
 
-      // Click to Swap capability
       card.addEventListener('click', () => handleCardClick(index));
-
       grid.appendChild(card);
     });
   }
@@ -455,7 +491,7 @@
       row.innerHTML = `
         <td class="td-center"><strong>${index + 1}</strong></td>
         <td class="td-student">${item.student}</td>
-        <td class="td-role">${item.role.icon || '⭐'} ${item.role.name}</td>
+        <td class="td-role">${item.role.icon || '🌿'} ${item.role.name}</td>
         <td class="td-desc">${item.role.desc || '-'}</td>
         <td class="td-check-box">
           <span class="check-square"></span>
@@ -479,7 +515,7 @@
   }
 
   // ==========================================
-  // 9. 카드 수동 교환 (Swap) 기능
+  // 9. 카드 수동 맞교환 (Swap) 기능
   // ==========================================
   function handleCardClick(index) {
     if (state.isShuffling) return;
@@ -488,16 +524,16 @@
 
     if (state.selectedCardIndex === null) {
       state.selectedCardIndex = index;
-      cards[index].style.outline = '3px solid #6366f1';
+      cards[index].style.outline = '3px solid #2d6a4f';
       cards[index].style.transform = 'scale(1.03)';
-      showToast(`${state.assignments[index].student} 학생이 선택되었습니다. 맞바꿀 다른 카드를 선택하세요.`, 'info');
+      showToast(`${state.assignments[index].student} 친구가 선택되었습니다. 맞바꿀 다른 카드를 골라주세요.`, 'info');
     } else if (state.selectedCardIndex === index) {
-      // Deselect
+      // 선택 취소
       cards[index].style.outline = 'none';
       cards[index].style.transform = 'none';
       state.selectedCardIndex = null;
     } else {
-      // Swap!
+      // 맞바꾸기 실행
       const firstIdx = state.selectedCardIndex;
       const secondIdx = index;
 
@@ -509,7 +545,7 @@
       saveData();
       renderAllViews();
       playTickSound();
-      showToast(`${state.assignments[firstIdx].student}님과 ${state.assignments[secondIdx].student}님의 역할이 교환되었습니다! 🤝`, 'success');
+      showToast(`${state.assignments[firstIdx].student}님과 ${state.assignments[secondIdx].student}님의 역할이 정답게 교환되었습니다! 🤝`, 'success');
     }
   }
 
@@ -534,7 +570,6 @@
       return;
     }
 
-    // TSV format for Excel / HWP
     let text = `번호\t학생 이름\t담당 역할\t주요 임무\n`;
     state.assignments.forEach((item, idx) => {
       text += `${idx + 1}\t${item.student}\t${item.role.name}\t${item.role.desc}\n`;
@@ -542,7 +577,7 @@
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
-        showToast('엑셀이나 한글(HWP) 표에 바로 붙여넣을 수 있도록 클립보드에 복사되었습니다! 📋', 'success');
+        showToast('엑셀이나 한글(HWP) 표에 바로 붙여넣을 수 있도록 복사되었습니다! 📋', 'success');
       }).catch(() => fallbackCopy(text));
     } else {
       fallbackCopy(text);
@@ -587,7 +622,7 @@
 
       saveData();
       renderAllViews();
-      showToast(`시트에서 학생 ${state.students.length}명, 역할 ${state.roles.length}개를 성공적으로 불러왔습니다! 🎉`, 'success');
+      showToast(`시트에서 친구 ${state.students.length}명, 역할 ${state.roles.length}개를 성공적으로 불러왔습니다! 🌿`, 'success');
       setSheetFeedback(`성공: 학생 ${state.students.length}명, 역할 ${state.roles.length}개 로드 완료!`, 'success');
     } catch (err) {
       console.error('시트 로드 실패:', err);
@@ -693,7 +728,7 @@
       row.className = 'item-row';
       row.innerHTML = `
         <div class="item-info">
-          <span style="font-weight: 700; color: #94a3b8; width: 24px;">${idx + 1}.</span>
+          <span style="font-weight: 700; color: #a89f91; width: 24px;">${idx + 1}.</span>
           <span>👤 ${name}</span>
         </div>
         <button class="item-delete-btn" title="삭제">&times;</button>
@@ -721,11 +756,11 @@
       row.className = 'item-row';
       row.innerHTML = `
         <div class="item-info">
-          <span style="font-weight: 700; color: #94a3b8; width: 24px;">${idx + 1}.</span>
+          <span style="font-weight: 700; color: #a89f91; width: 24px;">${idx + 1}.</span>
           <span style="font-size: 1.1rem;">${role.icon}</span>
           <div>
-            <div style="font-weight: 700;">${role.name}</div>
-            <div style="font-size: 0.78rem; color: #64748b;">${role.desc || ''}</div>
+            <div style="font-weight: 700; color: #3e2723;">${role.name}</div>
+            <div style="font-size: 0.78rem; color: #6f4e37;">${role.desc || ''}</div>
           </div>
         </div>
         <button class="item-delete-btn" title="삭제">&times;</button>
@@ -771,8 +806,8 @@
     if (btnSoundToggle) {
       btnSoundToggle.addEventListener('click', () => {
         state.soundEnabled = !state.soundEnabled;
-        if (soundIcon) soundIcon.textContent = state.soundEnabled ? '🔊' : '🔇';
-        showToast(state.soundEnabled ? '효과음이 켜졌습니다.' : '효과음이 꺼졌습니다.', 'info');
+        if (soundIcon) soundIcon.textContent = state.soundEnabled ? '🔔' : '🔕';
+        showToast(state.soundEnabled ? '숲속 풍경소리가 켜졌습니다.' : '풍경소리가 꺼졌습니다.', 'info');
       });
     }
 
@@ -805,7 +840,7 @@
     if (classTitle) {
       classTitle.textContent = state.classTitle;
       classTitle.addEventListener('blur', () => {
-        state.classTitle = classTitle.textContent.trim() || '🌈 즐거운 우리 반 1인 1역할 배정표';
+        state.classTitle = classTitle.textContent.trim() || '🌳 숲속 우리 반 1인 1역할 배정표';
         saveData();
         updatePrintHeaders();
       });
@@ -899,7 +934,7 @@
             state.students = list;
             renderStudentsList();
             batchStudentsContainer.classList.add('hidden');
-            showToast(`${list.length}명의 학생 명단이 적용되었습니다.`, 'success');
+            showToast(`${list.length}명의 친구 명단이 적용되었습니다.`, 'success');
           }
         });
       }
@@ -915,7 +950,7 @@
       if (!newRoleName) return;
       const name = newRoleName.value.trim();
       if (!name) return;
-      const icon = newRoleIcon ? newRoleIcon.value.trim() || '🌟' : '🌟';
+      const icon = newRoleIcon ? newRoleIcon.value.trim() || '🌿' : '🌿';
       const desc = newRoleDesc ? newRoleDesc.value.trim() : '';
 
       state.roles.push({

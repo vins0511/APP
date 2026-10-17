@@ -3,29 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>학급 1인 1역할 배정 도우미</title>
-  <meta name="description" content="초등학교 교실을 위한 귀엽고 산뜻한 1인 1역할 랜덤 배정 웹 애플리케이션 (A4 게시판 인쇄 및 구글 스프레드시트 연동 지원)" />
-  <meta property="og:title" content="학급 1인 1역할 배정 도우미" />
-  <meta property="og:description" content="우리 반 1인 1역할을 공정하고 재미있게 랜덤 배정하고 A4 교실 게시판으로 인쇄하세요!" />
+  <title>학급 1인 1역할 배정 도우미 - 지브리 숲속 교실</title>
+  <meta name="description" content="지브리 애니메이션 감성의 따뜻한 숲속 교실 1인 1역할 랜덤 배정 웹 애플리케이션 (A4 게시판 인쇄 및 구글 스프레드시트 연동 지원)" />
+  <meta property="og:title" content="학급 1인 1역할 배정 도우미 - 지브리 숲속 교실" />
+  <meta property="og:description" content="지브리 풍의 따뜻하고 포근한 숲속 교실에서 1인 1역할을 즐겁게 배정해 보세요!" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
 
-  <!-- Google Web Fonts for friendly Korean Typography -->
+  <!-- Google Fonts: Gaegu (Storybook Hand-drawn) + Noto Sans KR (Legible Clean Body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700;800;900&family=Jua&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <!-- Floating Pastel Background Accents -->
+  <!-- Ghibli Sky & Forest Floating Atmospheric Motifs -->
   <div class="bg-decorations" aria-hidden="true">
-    <div class="floating-shape shape-1">⭐</div>
-    <div class="floating-shape shape-2">🌈</div>
-    <div class="floating-shape shape-3">🌱</div>
-    <div class="floating-shape shape-4">✨</div>
-    <div class="floating-shape shape-5">🎈</div>
-    <div class="floating-shape shape-6">✏️</div>
+    <div class="floating-shape leaf-1">🍃</div>
+    <div class="floating-shape cloud-1">☁️</div>
+    <div class="floating-shape soot-1" title="먼지 요정">🐾</div>
+    <div class="floating-shape sprout-1">🌱</div>
+    <div class="floating-shape acorn-1">🌰</div>
+    <div class="floating-shape flower-1">🌸</div>
+    <div class="floating-shape leaf-2">🌿</div>
+    <div class="floating-shape cloud-2">⛅</div>
   </div>
 
   <!-- Screen Reader Live Announcement -->
@@ -34,28 +36,29 @@
   <!-- Main App Wrapper -->
   <div class="app-container">
     
-    <!-- Header Section -->
-    <header class="app-header no-print">
-      <div class="header-badge">
-        <span class="badge-icon">🏫</span>
-        <span>행복한 우리 교실 • 1인 1역할 프로젝트</span>
+    <!-- Ghibli Wooden / Parchment Signboard Header -->
+    <header class="app-header ghibli-signboard no-print">
+      <div class="header-badge ghibli-badge">
+        <span class="badge-icon">🌿</span>
+        <span>숲속 마을 우리 교실 • 1인 1역할 정원</span>
+        <span class="badge-icon">🐾</span>
       </div>
 
       <div class="title-wrapper">
-        <h1 id="classTitle" class="main-title" contenteditable="true" title="클릭하여 학급명을 수정할 수 있습니다" spellcheck="false">
-          🌈 즐거운 우리 반 1인 1역할 배정표
+        <h1 id="classTitle" class="main-title ghibli-title" contenteditable="true" title="클릭하여 학급명을 수정할 수 있습니다" spellcheck="false">
+          🌳 숲속 우리 반 1인 1역할 배정표
         </h1>
-        <span class="edit-hint">✏️ 제목을 눌러 학급명을 수정할 수 있어요</span>
+        <span class="edit-hint">✏️ 나무 간판 제목을 눌러 학급명을 수정할 수 있어요</span>
       </div>
 
       <div class="header-meta">
-        <div class="date-tag">
+        <div class="date-tag ghibli-tag">
           <span class="meta-label">📅 배정일자:</span>
           <input type="date" id="assignDate" class="date-input" />
         </div>
-        <div class="status-pill" id="dataCountPill">
+        <div class="status-pill ghibli-pill" id="dataCountPill">
           <span>👥 학생 <strong id="studentCountBadge">12</strong>명</span>
-          <span class="divider">/</span>
+          <span class="divider">🌿</span>
           <span>📋 역할 <strong id="roleCountBadge">12</strong>개</span>
         </div>
       </div>
@@ -86,31 +89,32 @@
             <span class="btn-icon">📋</span>
             <span class="btn-text">표 복사</span>
           </button>
-          <button id="btnPrint" class="btn btn-print" title="A4 한 장에 쏙 들어가는 교실 게시판용 인쇄">
+          <button id="btnPrint" class="btn btn-print" title="A4 한 장에 쏙 들어가는 숲속 교실 게시판용 인쇄">
             <span class="btn-icon">🖨️</span>
             <span class="btn-text">A4 게시판 인쇄</span>
           </button>
-          <button id="btnSoundToggle" class="btn btn-icon-only" title="효과음 켜기/끄기">
-            <span id="soundIcon">🔊</span>
+          <button id="btnSoundToggle" class="btn btn-icon-only" title="숲속 효과음 켜기/끄기">
+            <span id="soundIcon">🔔</span>
           </button>
         </div>
       </div>
     </header>
 
-    <!-- Main Assignment Action Banner -->
-    <section class="action-banner no-print">
+    <!-- Main Assignment Action Banner (Ghibli Forest Clearing) -->
+    <section class="action-banner ghibli-banner no-print">
       <div class="action-banner-inner">
         <div class="banner-text">
-          <h2>공정하고 신나는 우리 반 역할 정하기! 🎲</h2>
-          <p>모든 학생이 반을 위해 책임감 있게 봉사하는 소중한 1인 1역할입니다.</p>
+          <div class="banner-quote">"바람이 불어오는 날, 모두의 손길로 숲이 무성해집니다." 🍃</div>
+          <h2>숲의 정령들과 함께하는 역할 정하기 🌰</h2>
+          <p>서로를 배려하며 우리 교실을 푸르게 가꾸는 소중한 1인 1역할입니다.</p>
         </div>
         <div class="banner-buttons">
-          <button id="btnAssign" class="btn btn-primary pulse-btn" type="button">
+          <button id="btnAssign" class="btn btn-ghibli-primary pulse-btn" type="button">
             <span class="dice-icon">🎲</span>
             <span class="btn-main-text">역할 배정하기</span>
-            <span class="btn-sub-text">두근두근 랜덤 매칭!</span>
+            <span class="btn-sub-text">바람과 함께 랜덤 매칭! ✨</span>
           </button>
-          <button id="btnReset" class="btn btn-outline" type="button" title="배정 결과를 초기화합니다">
+          <button id="btnReset" class="btn btn-ghibli-outline" type="button" title="배정 결과를 초기화합니다">
             <span>🔄 다시 섞기</span>
           </button>
         </div>
@@ -122,32 +126,33 @@
       <!-- Result Bar & View Toggle -->
       <div class="results-header no-print">
         <div class="results-info">
-          <h3 id="assignmentStatusTitle">🎯 배정 현황</h3>
+          <h3 id="assignmentStatusTitle">🌿 숲속 배정 정원</h3>
           <span id="assignmentSubtitle" class="text-muted">아직 역할이 배정되지 않았습니다. [🎲 역할 배정하기] 버튼을 눌러보세요!</span>
         </div>
-        <div class="view-switch">
+        <div class="view-switch ghibli-switch">
           <button id="viewGridBtn" class="view-btn active" title="카드 형태로 보기">📇 카드 보기</button>
           <button id="viewTableBtn" class="view-btn" title="표 형태로 보기">📊 표 보기</button>
         </div>
       </div>
 
-      <!-- 1. Interactive Card Grid (Screen Display) -->
+      <!-- 1. Interactive Card Grid (Screen Display - Ghibli Parchment Cards) -->
       <div id="cardsGrid" class="cards-grid">
         <!-- Rendered dynamically by script.js -->
       </div>
 
-      <!-- 2. Clean Table View (For Screen & A4 Print) -->
+      <!-- 2. Clean Table View (For Screen & A4 Print - Storybook Bulletin Format) -->
       <div id="printContainer" class="print-container">
         <!-- Dedicated Header for Print -->
         <div class="print-header print-only">
-          <div class="print-school-tag">우리 교실 공동체 규칙 실천</div>
-          <h1 id="printClassTitle">🌈 즐거운 우리 반 1인 1역할 배정표</h1>
+          <div class="print-garland">🍃 🌸 🌿 🌰 🌿 🌸 🍃</div>
+          <div class="print-school-tag">우리 교실 따뜻한 공동체 실천 약속</div>
+          <h1 id="printClassTitle">🌳 숲속 우리 반 1인 1역할 배정표</h1>
           <div class="print-meta-row">
             <span>📅 <strong>배정일자:</strong> <span id="printDateDisplay"></span></span>
             <span>👥 <strong>참여 학생:</strong> <span id="printStudentCount">12</span>명</span>
             <span>🏫 <strong>담임 교사 확인:</strong> ____________ (인)</span>
           </div>
-          <p class="print-pledge">"우리는 각자의 역할을 성실하고 즐거운 마음으로 실천하여 모두가 행복한 학급을 만듭니다."</p>
+          <p class="print-pledge">"우리는 각자의 역할을 정성스레 실천하여, 따뜻하고 맑은 바람이 머무는 행복한 학급을 함께 만듭니다."</p>
         </div>
 
         <!-- The Table -->
@@ -168,7 +173,7 @@
 
         <!-- Print Footer -->
         <div class="print-footer print-only">
-          <span>✨ 서로 돕고 배려하는 따뜻한 우리 교실</span>
+          <span>🌿 지브리 숲속 교실 • 작은 정성이 모여 큰 숲을 이룹니다</span>
           <span>출력일시: <span id="printTimestamp"></span></span>
         </div>
       </div>
@@ -176,16 +181,16 @@
 
     <!-- Footer for Screen -->
     <footer class="app-footer no-print">
-      <p>💡 팁: 학생이나 역할을 클릭하여 순서를 교환하거나, [A4 게시판 인쇄] 버튼으로 교실 뒤판 부착용 출력물을 만드세요.</p>
+      <p>🌰 팁: 카드를 클릭하여 두 학생의 역할을 부드럽게 맞교환하거나, [A4 게시판 인쇄]로 교실 뒤판에 부착해 보세요.</p>
     </footer>
 
   </div> <!-- End .app-container -->
 
   <!-- Modal 1: Student & Role Management Modal -->
   <div id="manageModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-card">
+    <div class="modal-card ghibli-modal">
       <div class="modal-header">
-        <h3>📝 학생 명단 및 역할 관리</h3>
+        <h3>📝 숲속 친구들과 학급 역할 가꾸기</h3>
         <button class="modal-close" id="btnCloseManageModal" title="닫기">&times;</button>
       </div>
 
@@ -196,9 +201,9 @@
 
       <!-- Tab Content: Students -->
       <div id="tabStudentsContent" class="tab-content active">
-        <div class="quick-add-box">
-          <input type="text" id="newStudentInput" placeholder="추가할 학생 이름 입력 후 Enter (예: 김하늘)" maxlength="10" />
-          <button id="btnAddStudent" class="btn btn-sm btn-primary">추가</button>
+        <div class="quick-add-box ghibli-box">
+          <input type="text" id="newStudentInput" placeholder="새 친구 이름 입력 후 Enter (예: 김하늘)" maxlength="10" />
+          <button id="btnAddStudent" class="btn btn-sm btn-ghibli-primary">추가 🌿</button>
         </div>
         <div class="batch-edit-toggle">
           <button id="btnToggleBatchStudents" class="text-link">✏️ 쉼표나 줄바꿈으로 일괄 수정하기</button>
@@ -206,8 +211,8 @@
         <div id="batchStudentsContainer" class="batch-box hidden">
           <textarea id="batchStudentsTextarea" rows="4" placeholder="학생 이름을 쉼표나 줄바꿈으로 구분해 붙여넣으세요.&#10;예) 김민준, 이서연, 박도윤, 최지우..."></textarea>
           <div class="batch-buttons">
-            <button id="btnApplyBatchStudents" class="btn btn-sm btn-primary">적용하기</button>
-            <button id="btnCancelBatchStudents" class="btn btn-sm btn-outline">취소</button>
+            <button id="btnApplyBatchStudents" class="btn btn-sm btn-ghibli-primary">적용하기</button>
+            <button id="btnCancelBatchStudents" class="btn btn-sm btn-secondary">취소</button>
           </div>
         </div>
         <div class="items-list-container" id="studentsList">
@@ -217,13 +222,13 @@
 
       <!-- Tab Content: Roles -->
       <div id="tabRolesContent" class="tab-content">
-        <div class="quick-add-role-box">
+        <div class="quick-add-role-box ghibli-box">
           <div class="role-input-row">
-            <input type="text" id="newRoleIcon" class="role-icon-input" placeholder="이모지" value="🌟" maxlength="4" />
+            <input type="text" id="newRoleIcon" class="role-icon-input" placeholder="이모지" value="🌿" maxlength="4" />
             <input type="text" id="newRoleName" class="role-name-input" placeholder="역할 이름 (예: 칠판 지킴이)" maxlength="15" />
           </div>
           <input type="text" id="newRoleDesc" class="role-desc-input" placeholder="역할 임무 설명 (예: 수업 후 칠판을 닦아요)" maxlength="40" />
-          <button id="btnAddRole" class="btn btn-sm btn-primary full-width">새 역할 추가</button>
+          <button id="btnAddRole" class="btn btn-sm btn-ghibli-primary full-width">새 역할 심기 🌱</button>
         </div>
         <div class="items-list-container" id="rolesList">
           <!-- Dynamic roles list with delete button -->
@@ -232,9 +237,9 @@
 
       <div class="modal-footer">
         <button id="btnResetDefaultData" class="btn btn-sm btn-outline" title="초기 12명/12역할 예시 데이터로 되돌립니다">
-          🔄 기본 예시 데이터 복원
+          🔄 기본 예시 복원
         </button>
-        <button id="btnSaveDataModal" class="btn btn-sm btn-primary">
+        <button id="btnSaveDataModal" class="btn btn-sm btn-ghibli-primary">
           완료 및 닫기
         </button>
       </div>
@@ -243,15 +248,15 @@
 
   <!-- Modal 2: Google Sheets (Apps Script) Integration Modal -->
   <div id="sheetModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-card modal-wide">
+    <div class="modal-card modal-wide ghibli-modal">
       <div class="modal-header">
         <h3>🔄 구글 스프레드시트(Apps Script) 연동 설정</h3>
         <button class="modal-close" id="btnCloseSheetModal" title="닫기">&times;</button>
       </div>
 
       <div class="sheet-modal-body">
-        <div class="sheet-info-banner">
-          <span class="info-icon">💡</span>
+        <div class="sheet-info-banner ghibli-info">
+          <span class="info-icon">🌿</span>
           <p>
             선생님의 구글 스프레드시트에서 학생 명단과 역할을 가져오거나, 이번 배정 결과를 자동으로 시트에 기록할 수 있도록 Google Apps Script Web App 연동 기능을 지원합니다.
           </p>
@@ -261,12 +266,12 @@
           <label for="appsScriptUrl"><strong>🔗 Apps Script Web App URL:</strong></label>
           <div class="url-input-wrap">
             <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
-            <button id="btnSaveSheetUrl" class="btn btn-sm btn-primary">URL 저장</button>
+            <button id="btnSaveSheetUrl" class="btn btn-sm btn-ghibli-primary">URL 저장</button>
           </div>
           <span class="help-text">구글 스프레드시트의 <em>[확장 프로그램] → [Apps Script] → [배포] → [새 배포 (웹 앱)]</em> URL을 입력해 주세요.</span>
         </div>
 
-        <div class="sheet-actions-test">
+        <div class="sheet-actions-test ghibli-box">
           <h4>⚡ 빠른 동작 테스트</h4>
           <div class="test-btn-group">
             <button id="btnTestLoad" class="btn btn-sm btn-sheet">
@@ -279,7 +284,7 @@
           <div id="sheetTestFeedback" class="sheet-feedback"></div>
         </div>
 
-        <details class="code-details">
+        <details class="code-details ghibli-code-details">
           <summary><strong>📜 구글 스프레드시트에 넣을 Apps Script 샘플 코드 보기</strong> (클릭하여 펼치기)</summary>
           <div class="code-wrapper">
             <button id="btnCopyScriptCode" class="copy-code-btn">📋 코드 복사</button>
@@ -294,7 +299,7 @@ function doGet(e) {
   if (roleSheet !== studentSheet) {
     var roleData = roleSheet.getRange(2, 1, Math.max(1, roleSheet.getLastRow() - 1), 3).getValues();
     roles = roleData.filter(function(r) { return r[0]; }).map(function(r) {
-      return { icon: r[0] || "⭐", name: r[1] || "", desc: r[2] || "" };
+      return { icon: r[0] || "🌿", name: r[1] || "", desc: r[2] || "" };
     });
   }
   
@@ -332,7 +337,7 @@ function doPost(e) {
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container" aria-live="assertive"></div>
 
-  <!-- Confetti Canvas -->
+  <!-- Forest Breeze Canvas (Leaves, Golden Spores & Flower Petals) -->
   <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
 
   <!-- Script Logic -->
